@@ -1,52 +1,31 @@
-# Prerequisites
-*.d
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Build outputs
+**/bin/
+**/obj/
 
-# Precompiled Headers
-*.gch
-*.pch
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+# NuGet
+**/packages/
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+# ReSharper / Rider
+_ReSharper*/
+.idea/
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+# Visual Studio Code
+.vscode/
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# OS
+.DS_Store
+Thumbs.db
