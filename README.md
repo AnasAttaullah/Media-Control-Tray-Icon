@@ -1,0 +1,2 @@
+# Media Control Tray Icon
+
