@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Media_Control_Tray_Icon.Services;
+using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -17,13 +19,10 @@ namespace Media_Control_Tray_Icon
     public partial class App : Application
     {
         private NotifyIcon trayIcon;
-        private ImageSource? pauseDarkIcon;
-        private ImageSource? playDarkIcon;
+        private ImageSource pauseDarkIcon;
+        private ImageSource playDarkIcon;
 
-        public GlobalSystemMediaTransportControlsSessionManager? MediaSessionManager { get; set; }
-        public GlobalSystemMediaTransportControlsSession? CurrentSession { get; set; }
-        public GlobalSystemMediaTransportControlsSessionPlaybackInfo PlaybackInfo { get; set; }
-
+        private MediaSessionService _mediaService;
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -34,7 +33,8 @@ namespace Media_Control_Tray_Icon
 
             try
             {
-                MediaSessionManager = await InitializeMediaSessionAsync();
+                _mediaService = new MediaSessionService();
+                await _mediaService.InitializeAsync();
             }
             catch (Exception ex)
             {
@@ -42,15 +42,13 @@ namespace Media_Control_Tray_Icon
                 Shutdown();
             }
 
-            CurrentSession = MediaSessionManager.GetCurrentSession();
-            PlaybackInfo = CurrentSession.GetPlaybackInfo();
 
             // Events
             trayIcon.LeftClick += TrayIcon_LeftClickAsync;
             trayIcon.LeftDoubleClick += TrayIcon_LeftDoubleClickAsync;
             trayIcon.RightClick += TrayIcon_RightClick;
-            CurrentSession.PlaybackInfoChanged += CurrentSession_PlaybackInfoChanged;
-            CurrentSession.MediaPropertiesChanged += CurrentSession_MediaPropertiesChanged;
+            _mediaService.PlaybackInfoChanged += MediaService_PlaybackInfoChanged;
+            _mediaService.MediaPropertiesChanged += MediaService_MediaPropertiesChanged;
 
             // Registering the TrayIcon
             if (MainWindow is not null)
@@ -61,19 +59,16 @@ namespace Media_Control_Tray_Icon
             {
                 Dispatcher.BeginInvoke(RegisterTrayIcon, DispatcherPriority.ApplicationIdle);
             }
+            UpdateTrayIcon();
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
+            _mediaService.Dispose();
             trayIcon?.Dispose();
             base.OnExit(e);
         }
 
-        // METHODS
-        private async Task<GlobalSystemMediaTransportControlsSessionManager> InitializeMediaSessionAsync()
-        {
-            return await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-        }
 
         private void RegisterTrayIcon()
         {
@@ -95,9 +90,7 @@ namespace Media_Control_Tray_Icon
         {
             Dispatcher.Invoke(() =>
             {
-                trayIcon.Icon = PlaybackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing
-                    ? pauseDarkIcon
-                    : playDarkIcon;
+                trayIcon.Icon = _mediaService.IsPlaying() ? pauseDarkIcon : playDarkIcon;
             });
         }
 
@@ -105,14 +98,14 @@ namespace Media_Control_Tray_Icon
 
         private async void TrayIcon_LeftClickAsync([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
-            await CurrentSession.TryTogglePlayPauseAsync();
+            await _mediaService.TogglePlayPauseAsync();
         }
 
         private async void TrayIcon_LeftDoubleClickAsync([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
-            await CurrentSession.TrySkipNextAsync();
+            await _mediaService.SkipNextAsync();
         }
-
+         
         private void TrayIcon_RightClick([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
             Debug.WriteLine("Right mouse click");
@@ -122,17 +115,15 @@ namespace Media_Control_Tray_Icon
         {
             RegisterTrayIcon();
         }
-
-        private void CurrentSession_MediaPropertiesChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args)
+        private void MediaService_MediaPropertiesChanged(object? sender, EventArgs e)
         {
             // update the details on the popup
         }
 
-        private void CurrentSession_PlaybackInfoChanged(GlobalSystemMediaTransportControlsSession sender, PlaybackInfoChangedEventArgs args)
+        private void MediaService_PlaybackInfoChanged(object? sender, Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackInfo e)
         {
-            PlaybackInfo = CurrentSession.GetPlaybackInfo();
             UpdateTrayIcon();
-            Debug.WriteLine(PlaybackInfo.PlaybackStatus.ToString());
+            Debug.WriteLine(e.PlaybackStatus.ToString());
         }
     }
 }
