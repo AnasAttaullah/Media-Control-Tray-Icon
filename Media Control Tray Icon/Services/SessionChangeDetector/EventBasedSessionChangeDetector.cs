@@ -1,0 +1,50 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Windows.Media.Control;
+
+namespace Media_Control_Tray_Icon.Services.SessionChangeDetector
+{
+    /// <summary>
+    /// Windows 11+ session change detector using native events
+    /// </summary>
+
+    internal class EventBasedSessionChangeDetector : ISessionChangeDetector
+    {
+        private readonly GlobalSystemMediaTransportControlsSessionManager _sessionManager;
+        private readonly Action<GlobalSystemMediaTransportControlsSession?> _onSessionChanged;
+        public EventBasedSessionChangeDetector(GlobalSystemMediaTransportControlsSessionManager sessionManager, Action<GlobalSystemMediaTransportControlsSession?> onSessionChanged)
+        {
+            _sessionManager = sessionManager;
+            _onSessionChanged = onSessionChanged;
+        }
+        public void Start()
+        {
+            _sessionManager.SessionsChanged += OnSessionsChanged;
+        }
+
+        private void OnSessionsChanged(GlobalSystemMediaTransportControlsSessionManager sender, SessionsChangedEventArgs args)
+        {
+            try
+            {   
+                var newSession =  _sessionManager.GetCurrentSession();
+                if (newSession != null)
+                {
+                    _onSessionChanged.Invoke(newSession);
+                }
+            }
+            catch(Exception ex) 
+            { 
+            Debug.WriteLine($"Error in event-based session change: {ex.Message}");
+            }
+        }
+
+        public void Dispose()
+        {
+            _sessionManager.SessionsChanged -= OnSessionsChanged;
+        }
+    }
+}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Media_Control_Tray_Icon.Services.SessionChangeDetector;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Media.Control;
@@ -17,13 +18,13 @@ namespace Media_Control_Tray_Icon.Services
 
         private ISessionChangeDetector? _sessionChangeDetector;
         private string? _lastSessionId;
-        
+
         // Methods
         public async Task InitializeAsync()
         {
-            SessionManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync(); 
+            SessionManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
             CurrentSession = SessionManager.GetCurrentSession();
-            
+
             if (CurrentSession != null)
             {
                 _lastSessionId = CurrentSession.SourceAppUserModelId;
@@ -32,10 +33,10 @@ namespace Media_Control_Tray_Icon.Services
                 CurrentSession.MediaPropertiesChanged += OnCurrentSession_MediaPropertiesChanged;
             }
 
-            // Select appropriate session change detection strategy based on OS
+            // Detecting OS
             var osVersion = Environment.OSVersion;
             var isWindows10 = osVersion.Version.Major == 10 && osVersion.Version.Build < 22000;
-            
+
             if (isWindows10)
             {
                 System.Diagnostics.Debug.WriteLine("Windows 10 detected: Using polling strategy");
@@ -53,7 +54,7 @@ namespace Media_Control_Tray_Icon.Services
         private void OnSessionChangeDetected(GlobalSystemMediaTransportControlsSession? newSession)
         {
             var newSessionId = newSession?.SourceAppUserModelId;
-            
+
             if (newSessionId != _lastSessionId)
             {
                 System.Diagnostics.Debug.WriteLine($"Session change: {_lastSessionId} -> {newSessionId}");
@@ -64,8 +65,7 @@ namespace Media_Control_Tray_Icon.Services
 
         private void UpdateCurrentSession(GlobalSystemMediaTransportControlsSession? newSession)
         {
-            // Clean up old session event handlers
-            if(CurrentSession != null)
+            if (CurrentSession != null)
             {
                 CurrentSession.PlaybackInfoChanged -= OnCurrentSession_PlaybackInfoChanged;
                 CurrentSession.MediaPropertiesChanged -= OnCurrentSession_MediaPropertiesChanged;
@@ -89,7 +89,7 @@ namespace Media_Control_Tray_Icon.Services
 
         public async Task TogglePlayPauseAsync()
         {
-            if(CurrentSession != null)
+            if (CurrentSession != null)
             {
                 await CurrentSession.TryTogglePlayPauseAsync();
             }
@@ -97,7 +97,7 @@ namespace Media_Control_Tray_Icon.Services
 
         public async Task SkipNextAsync()
         {
-            if(CurrentSession != null)
+            if (CurrentSession != null)
             {
                 await CurrentSession.TrySkipNextAsync();
             }
@@ -105,7 +105,7 @@ namespace Media_Control_Tray_Icon.Services
 
         public async Task SkipPreviousAsync()
         {
-            if(CurrentSession != null)
+            if (CurrentSession != null)
             {
                 await CurrentSession.TrySkipPreviousAsync();
             }
@@ -119,13 +119,13 @@ namespace Media_Control_Tray_Icon.Services
         // Event Handlers   
         private void OnCurrentSession_MediaPropertiesChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args)
         {
-            MediaPropertiesChanged?.Invoke(this, EventArgs.Empty); 
+            MediaPropertiesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void OnCurrentSession_PlaybackInfoChanged(GlobalSystemMediaTransportControlsSession sender, PlaybackInfoChangedEventArgs args)
         {
             CurrentPlaybackInfo = CurrentSession?.GetPlaybackInfo();
-            if(CurrentPlaybackInfo != null)
+            if (CurrentPlaybackInfo != null)
             {
                 PlaybackInfoChanged?.Invoke(this, CurrentPlaybackInfo);
             }
@@ -135,8 +135,8 @@ namespace Media_Control_Tray_Icon.Services
         public void Dispose()
         {
             _sessionChangeDetector?.Dispose();
-            
-            if(CurrentSession != null)
+
+            if (CurrentSession != null)
             {
                 CurrentSession.PlaybackInfoChanged -= OnCurrentSession_PlaybackInfoChanged;
                 CurrentSession.MediaPropertiesChanged -= OnCurrentSession_MediaPropertiesChanged;
@@ -144,86 +144,5 @@ namespace Media_Control_Tray_Icon.Services
         }
     }
 
-    // Strategy interface
-    internal interface ISessionChangeDetector : IDisposable
-    {
-        void Start();
     }
 
-    // Windows 11 implementation
-    internal class EventBasedSessionChangeDetector : ISessionChangeDetector
-    {
-        private readonly GlobalSystemMediaTransportControlsSessionManager _sessionManager;
-        private readonly Action<GlobalSystemMediaTransportControlsSession?> _onSessionChanged;
-
-        public EventBasedSessionChangeDetector(
-            GlobalSystemMediaTransportControlsSessionManager sessionManager,
-            Action<GlobalSystemMediaTransportControlsSession?> onSessionChanged)
-        {
-            _sessionManager = sessionManager;
-            _onSessionChanged = onSessionChanged;
-        }
-
-        public void Start()
-        {
-            _sessionManager.SessionsChanged += OnSessionsChanged;
-        }
-
-        private void OnSessionsChanged(GlobalSystemMediaTransportControlsSessionManager sender, SessionsChangedEventArgs args)
-        {
-            try
-            {
-                var newSession = sender?.GetCurrentSession();
-                _onSessionChanged?.Invoke(newSession);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in event-based session change: {ex.Message}");
-            }
-        }
-
-        public void Dispose()
-        {
-            _sessionManager.SessionsChanged -= OnSessionsChanged;
-        }
-    }
-
-    // Windows 10 implementation
-    internal class PollingSessionChangeDetector : ISessionChangeDetector
-    {
-        private readonly GlobalSystemMediaTransportControlsSessionManager _sessionManager;
-        private readonly Action<GlobalSystemMediaTransportControlsSession?> _onSessionChanged;
-        private Timer? _pollTimer;
-
-        public PollingSessionChangeDetector(
-            GlobalSystemMediaTransportControlsSessionManager sessionManager,
-            Action<GlobalSystemMediaTransportControlsSession?> onSessionChanged)
-        {
-            _sessionManager = sessionManager;
-            _onSessionChanged = onSessionChanged;
-        }
-
-        public void Start()
-        {
-            _pollTimer = new Timer(CheckForSessionChange, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-        }
-
-        private void CheckForSessionChange(object? state)
-        {
-            try
-            {
-                var newSession = _sessionManager?.GetCurrentSession();
-                _onSessionChanged?.Invoke(newSession);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in polling session change: {ex.Message}");
-            }
-        }
-
-        public void Dispose()
-        {
-            _pollTimer?.Dispose();
-        }
-    }
-}
