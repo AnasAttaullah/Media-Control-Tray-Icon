@@ -31,10 +31,7 @@ namespace Media_Control_Tray_Icon.Services.SessionChangeDetector
             try
             {   
                 var newSession =  _sessionManager.GetCurrentSession();
-                if (newSession != null)
-                {
-                    _onSessionChanged.Invoke(newSession);
-                }
+                _onSessionChanged.Invoke(newSession);
             }
             catch(Exception ex) 
             { 

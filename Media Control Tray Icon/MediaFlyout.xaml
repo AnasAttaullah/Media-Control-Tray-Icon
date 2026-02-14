@@ -8,35 +8,41 @@
     xmlns:tray="http://schemas.lepo.co/wpfui/2022/xaml/tray"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="MediaFlyout"
-    Width="300"
-    Height="100"
+    Width="400"
+    Height="130"
+    MinWidth="400"
+    MinHeight="130"
     AllowDrop="True"
     ResizeMode="NoResize"
     ShowInTaskbar="False"
     Topmost="True"
     WindowStyle="ToolWindow"
+    WindowBackdropType="Mica"
+    ExtendsContentIntoTitleBar="True"
     mc:Ignorable="d">
-    <Grid Margin="10">
+    <Grid Margin="15">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
         <ui:Image
             Grid.Column="0"
-            Width="100"
+            Width="auto"
             Height="100"
             CornerRadius="8"
             Source="pack://application:,,,/demo.jpg" />
         <StackPanel
             Grid.Column="1"
-            Margin="10,0"
+            Margin="15,0 , 0 , 0"
             VerticalAlignment="Center">
             <ui:TextBlock
-                FontWeight="SemiBold"
+                FontTypography="BodyStrong"
+                FontSize="16"
                 Foreground="{ui:ThemeResource TextFillColorPrimaryBrush}"
                 Text="Borderline Official Music Video" />
             <ui:TextBlock
                 Margin="0,0,0,10"
+                FontTypography="Body"
                 Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
                 Text="Tame Impala" />
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
