@@ -1,16 +1,12 @@
 ﻿using Media_Control_Tray_Icon.Services;
 using System;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Windows.Media.Control;
 using Wpf.Ui.Appearance;
-using Wpf.Ui.Controls;
 using Wpf.Ui.Tray.Controls;
 
 namespace Media_Control_Tray_Icon
@@ -45,7 +41,7 @@ namespace Media_Control_Tray_Icon
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(ex.ToString(), "Startup Error");
+                MessageBox.Show(ex.ToString(), "Startup Error");
                 Shutdown();
             }
             PreloadIconAssets();
@@ -76,6 +72,7 @@ namespace Media_Control_Tray_Icon
             // Initialize the media flyout
             mediaFlyout = new MediaFlyout(_mediaService);
             mediaFlyout.Show();
+            mediaFlyout.Hide();
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -172,8 +169,7 @@ namespace Media_Control_Tray_Icon
 
         private async void TrayIcon_LeftClickAsync([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
-            mediaFlyout.Hide();
-            await _mediaService.TogglePlayPauseAsync();
+             await _mediaService.TogglePlayPauseAsync();
         }
 
         private async void TrayIcon_LeftDoubleClickAsync([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
@@ -184,7 +180,9 @@ namespace Media_Control_Tray_Icon
         private void TrayIcon_RightClick([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
             Debug.WriteLine("Right mouse click");
-            mediaFlyout.Hide();
+
+                mediaFlyout.showFlyout();
+            
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)

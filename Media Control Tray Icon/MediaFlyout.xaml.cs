@@ -1,18 +1,7 @@
 ﻿using Media_Control_Tray_Icon.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using Windows.Media.Control;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -65,6 +54,37 @@ namespace Media_Control_Tray_Icon
         private async void NextButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             await _sessionManager.SkipNextAsync();
+        }
+
+        private void Flyout_Deactivated(object sender, EventArgs e)
+        {
+                Hide();
+             }
+
+
+
+        internal void showFlyout()
+        {
+
+            // Make visible first
+            this.Visibility = Visibility.Visible;
+
+            // Temporarily toggle Topmost to force Windows to treat it as foreground
+            this.Topmost = true;
+            this.Topmost = false;
+            this.Topmost = true;
+
+            // Activate + Focus
+            this.Activate();
+            this.Focus();
+
+            Keyboard.Focus(this);
+
+        }
+
+        private void FluentWindow_LostFocus(object sender, RoutedEventArgs e)
+        {
+            Hide();
         }
     }
 }

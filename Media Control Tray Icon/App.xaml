@@ -15,6 +15,7 @@
 
             <tray:NotifyIcon
                 x:Key="trayIcon"
+                FocusOnLeftClick="False"
                 Icon="/icons/pauseDark.ico"
                 Visibility="Visible" />
 
