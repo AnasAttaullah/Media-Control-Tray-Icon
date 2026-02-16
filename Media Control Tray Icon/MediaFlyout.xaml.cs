@@ -82,9 +82,9 @@ namespace Media_Control_Tray_Icon
 
         }
 
-        private void FluentWindow_LostFocus(object sender, RoutedEventArgs e)
-        {
-            Hide();
-        }
+        //private void FluentWindow_LostFocus(object sender, RoutedEventArgs e)
+        //{
+        //    //Hide(); // I think by commeting this the sudden UI flyout Close is not happening anymore 
+        //}
     }
 }

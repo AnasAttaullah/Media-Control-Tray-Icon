@@ -19,7 +19,7 @@
     WindowBackdropType="Mica"
     WindowStartupLocation="Manual"
     ExtendsContentIntoTitleBar="True"
-    mc:Ignorable="d" Deactivated="Flyout_Deactivated" LostFocus="FluentWindow_LostFocus">
+    mc:Ignorable="d" Deactivated="Flyout_Deactivated">
     <Grid Margin="12 0" MouseLeftButtonDown="Window_MouseLeftButtonDown">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />

@@ -1,7 +1,9 @@
 ﻿using Media_Control_Tray_Icon.Services;
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -28,6 +30,17 @@ namespace Media_Control_Tray_Icon
 
         private MediaSessionService _mediaService;
         public ApplicationTheme currentAppTheme;
+
+        // P/Invoke declarations
+        private const int GWL_EXSTYLE = -20;
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -45,7 +58,14 @@ namespace Media_Control_Tray_Icon
                 Left = -10000,
                 Top = -10000
             };
+            
             MainWindow.Show();
+            
+            // Set WS_EX_TOOLWINDOW to hide from Alt+Tab
+            var helper = new WindowInteropHelper(MainWindow);
+            int exStyle = GetWindowLong(helper.Handle, GWL_EXSTYLE);
+            SetWindowLong(helper.Handle, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW);
+            
             MainWindow.Hide();
             
             currentAppTheme = ApplicationThemeManager.GetAppTheme();
