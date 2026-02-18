@@ -109,9 +109,9 @@
                 Grid.Column="0"
                 Width="90"
                 Height="90"
-                FontSize="72"
+                FontSize="68"
                 Filled="True"
-                Symbol="MusicNote224" />
+                Symbol="MusicNoteOff224" />
 
             <StackPanel
                 Name="noMediaPlayingPanel"
