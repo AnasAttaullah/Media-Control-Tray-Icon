@@ -1,7 +1,10 @@
 ﻿using Media_Control_Tray_Icon.Services;
 using System;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -38,7 +41,6 @@ namespace Media_Control_Tray_Icon
             }
             if (_sessionManager.CurrentSession == null)
             {
-                //PlaybackButtonsGrid.IsEnabled = false;
                 PlaybackButtonsGrid.Visibility = Visibility.Collapsed;
                 return;
             }
@@ -49,7 +51,7 @@ namespace Media_Control_Tray_Icon
             playPauseIcon.Symbol = (_sessionManager.IsPlaying()) ? SymbolRegular.Pause12 : SymbolRegular.Play12;
         }
 
-        public void UpdateMediaInfo()
+        public async void UpdateMediaInfo()
         {
             if (!Dispatcher.CheckAccess())
             {
@@ -58,7 +60,7 @@ namespace Media_Control_Tray_Icon
             }
             if (_sessionManager.CurrentMediaProperties != null)
             {
-                if(mediaPlayingGrid.Visibility != Visibility.Visible)
+                if (mediaPlayingGrid.Visibility != Visibility.Visible)
                 {
                     mediaPlayingGrid.Visibility = Visibility.Visible;
                     noMediaPlayingGrid.Visibility = Visibility.Collapsed;
@@ -66,14 +68,50 @@ namespace Media_Control_Tray_Icon
                 var mediaTitle = _sessionManager.CurrentMediaProperties.Title;
                 playingMediaTitle.Text = (mediaTitle.Length > 35) ? mediaTitle.Substring(0, 32) + "..." : mediaTitle;
                 playingMediaArtist.Text = _sessionManager.CurrentMediaProperties.Artist;
-                //playingMediaThumbnail.Source = _sessionManager.CurrentMediaThumbnail;
+
+                // Update thumbnail
+                var thumbnail = await LoadMediaThumbnailAsync(_sessionManager.CurrentMediaProperties.Thumbnail);
+                playingMediaThumbnail.Source = thumbnail;
             }
             else
             {
                 mediaPlayingGrid.Visibility = Visibility.Collapsed;
                 noMediaPlayingGrid.Visibility = Visibility.Visible;
-                playingMediaTitle.Text = "It’s a bit quiet in here...";
+                playingMediaTitle.Text = "It's a bit quiet in here...";
                 playingMediaArtist.Text = "Time to break the silence";
+            }
+        }
+
+        private async Task<BitmapImage?> LoadMediaThumbnailAsync(Windows.Storage.Streams.IRandomAccessStreamReference? thumbnailRef)
+        {
+            if (thumbnailRef == null)
+                return null;
+
+            try
+            {
+                using var stream = await thumbnailRef.OpenReadAsync();
+                if (stream == null || stream.Size == 0)
+                    return null;
+
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+
+                // Copy to memory stream to avoid stream disposal issues
+                using var memStream = new MemoryStream();
+                await stream.AsStreamForRead().CopyToAsync(memStream);
+                memStream.Position = 0;
+
+                bitmap.StreamSource = memStream;
+                bitmap.EndInit();
+                bitmap.Freeze(); // Important for cross-thread usage
+
+                return bitmap;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load thumbnail: {ex.Message}");
+                return null;
             }
         }
 
