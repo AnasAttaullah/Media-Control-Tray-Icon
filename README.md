@@ -2,6 +2,10 @@
 
 A lightweight Windows tray utility that puts media controls one click away using the system media session (GSMTC). Built with WPF on `.NET 8`.
 
+<p align="center">
+  <img src="Assets/logo.png" width="200"/>
+</p>
+
 ## Features
 
 - **Tray icon media control**
