@@ -71,7 +71,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
-                    <ui:Button Click="PreviousButton_ClickAsync">
+                    <ui:Button Click="PreviousButton_ClickAsync" Name="PreviousTrackButton">
                         <ui:SymbolIcon
                             Filled="False"
                             FontSize="18"
@@ -87,7 +87,7 @@
                             FontSize="18"
                             Symbol="Play12" />
                     </ui:Button>
-                    <ui:Button Click="NextButton_ClickAsync">
+                    <ui:Button Click="NextButton_ClickAsync" Name="NextTrackButton">
                         <ui:SymbolIcon
                             Filled="False"
                             FontSize="18"

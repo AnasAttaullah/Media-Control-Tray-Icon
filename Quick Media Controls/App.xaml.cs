@@ -180,6 +180,19 @@ namespace Quick_Media_Controls
             }
         }
 
+        public void UpdatePlaybackButtonsStatus()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(UpdatePlaybackButtonsStatus);
+                return;
+            }
+            if (mediaFlyout != null && _mediaService.CurrentPlaybackInfo != null) {
+                mediaFlyout.NextTrackButton.IsEnabled = _mediaService.IsNextEnabled();
+                mediaFlyout.PreviousTrackButton.IsEnabled = _mediaService.IsPreviousEnabled();
+            }
+        }
+
         // EVENT HANDLERS
 
         private async void TrayIcon_LeftClickAsync([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
@@ -200,6 +213,7 @@ namespace Quick_Media_Controls
                 mediaFlyout = new MediaFlyout(_mediaService);
             }
             _mediaService.FetchMediaAsync();
+            UpdatePlaybackButtonsStatus();
             mediaFlyout.showFlyout();
             
         }
@@ -222,6 +236,7 @@ namespace Quick_Media_Controls
         private void MediaService_PlaybackInfoChanged(object? sender, GlobalSystemMediaTransportControlsSessionPlaybackInfo e)
         {
             UpdateTrayIcon();
+            UpdatePlaybackButtonsStatus();
             Debug.WriteLine(e.PlaybackStatus.ToString());
         }
         private void ApplicationThemeManager_Changed(ApplicationTheme currentApplicationTheme, System.Windows.Media.Color systemAccent)

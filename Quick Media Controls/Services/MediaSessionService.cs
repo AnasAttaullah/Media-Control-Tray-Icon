@@ -127,6 +127,20 @@ namespace Quick_Media_Controls.Services
         {
             return CurrentPlaybackInfo?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
         }
+        public bool IsNextEnabled()
+        {
+            return CurrentPlaybackInfo?.Controls?.IsNextEnabled ?? false;
+        }
+
+        public bool IsPreviousEnabled()
+        {
+            return CurrentPlaybackInfo?.Controls?.IsPreviousEnabled ?? false;
+        }
+
+        public bool HasPlaylist()
+        {
+            return IsNextEnabled() || IsPreviousEnabled();
+        }
 
         // Event Handlers   
         private async void OnCurrentSession_MediaPropertiesChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args)
