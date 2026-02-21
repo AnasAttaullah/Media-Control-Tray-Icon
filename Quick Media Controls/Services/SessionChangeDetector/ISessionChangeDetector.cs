@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Media_Control_Tray_Icon.Services.SessionChangeDetector
+namespace Quick_Media_Controls.Services.SessionChangeDetector
 {
     internal interface ISessionChangeDetector : IDisposable
     {

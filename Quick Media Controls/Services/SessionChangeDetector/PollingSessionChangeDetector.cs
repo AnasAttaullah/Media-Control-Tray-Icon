@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using Windows.Media.Control;
 
-namespace Media_Control_Tray_Icon.Services.SessionChangeDetector
+namespace Quick_Media_Controls.Services.SessionChangeDetector
 {
     /// <summary>
     /// Windows 10 session change detector using polling strategy

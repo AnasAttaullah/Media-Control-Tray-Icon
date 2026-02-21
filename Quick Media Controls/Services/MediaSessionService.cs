@@ -1,10 +1,10 @@
-﻿using Media_Control_Tray_Icon.Services.SessionChangeDetector;
+﻿using Quick_Media_Controls.Services.SessionChangeDetector;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 
-namespace Media_Control_Tray_Icon.Services
+namespace Quick_Media_Controls.Services
 {
     public class MediaSessionService : IDisposable
     {

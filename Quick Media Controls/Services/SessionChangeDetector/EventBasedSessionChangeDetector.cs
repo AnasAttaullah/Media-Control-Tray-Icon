@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 
-namespace Media_Control_Tray_Icon.Services.SessionChangeDetector
+namespace Quick_Media_Controls.Services.SessionChangeDetector
 {
     /// <summary>
     /// Windows 11+ session change detector using native events

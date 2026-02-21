@@ -4,7 +4,7 @@
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
 		<UseWPF>true</UseWPF>
-		<RootNamespace>Media_Control_Tray_Icon</RootNamespace>
+		<RootNamespace>Quick_Media_Controls</RootNamespace>
 		<Nullable>enable</Nullable>
 		<UseSystemDrawing>true</UseSystemDrawing>
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
@@ -16,31 +16,31 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="demo.jpg" />
+		<Resource Include="Assets\placeholder.jpg" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="icons\pauseLight.ico" />
+		<Resource Include="Assets\Icons\pauseLight.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="icons\pauseDark.ico" />
+		<Resource Include="Assets\Icons\pauseDark.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="icons\playLight.ico" />
+		<Resource Include="Assets\Icons\playLight.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="icons\playDark.ico" />
+		<Resource Include="Assets\Icons\playDark.ico" />
 	</ItemGroup>
 	
 	<ItemGroup>
-		<Resource Include="icons\noMediaLight.ico" />
+		<Resource Include="Assets\Icons\noMediaLight.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="icons\noMediaDark.ico" />
+		<Resource Include="Assets\Icons\noMediaDark.ico" />
 	</ItemGroup>
 
 </Project>

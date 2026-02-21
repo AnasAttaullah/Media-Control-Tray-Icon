@@ -1,4 +1,4 @@
-﻿using Media_Control_Tray_Icon.Services;
+﻿using Quick_Media_Controls.Services;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -10,7 +10,7 @@ using Windows.Media.Control;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Tray.Controls;
 
-namespace Media_Control_Tray_Icon
+namespace Quick_Media_Controls
 {
     /// <summary>
     /// Interaction logic for App.xaml
@@ -140,12 +140,12 @@ namespace Media_Control_Tray_Icon
         }
         private void PreloadIconAssets()
         {
-            playLightIcon = LoadTrayIcon("icons/playLight.ico");
-            playDarkIcon = LoadTrayIcon("icons/playDark.ico");
-            pauseLightIcon = LoadTrayIcon("icons/pauseLight.ico");
-            pauseDarkIcon = LoadTrayIcon("icons/pauseDark.ico");
-            noMediaLightIcon = LoadTrayIcon("icons/noMediaLight.ico");
-            noMediaDarkIcon = LoadTrayIcon("icons/noMediaDark.ico");
+            playLightIcon = LoadTrayIcon("Assets\\Icons\\playLight.ico");
+            playDarkIcon = LoadTrayIcon("Assets\\Icons\\playDark.ico");
+            pauseLightIcon = LoadTrayIcon("Assets\\Icons\\pauseLight.ico");
+            pauseDarkIcon = LoadTrayIcon("Assets\\Icons\\pauseDark.ico");
+            noMediaLightIcon = LoadTrayIcon("Assets\\Icons\\noMediaLight.ico");
+            noMediaDarkIcon = LoadTrayIcon("Assets\\Icons\\noMediaDark.ico");
         }
 
 

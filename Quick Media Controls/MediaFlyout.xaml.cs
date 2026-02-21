@@ -1,4 +1,4 @@
-﻿using Media_Control_Tray_Icon.Services;
+﻿using Quick_Media_Controls.Services;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ using System.Windows.Media.Imaging;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
-namespace Media_Control_Tray_Icon
+namespace Quick_Media_Controls
 {
     /// <summary>
     /// Interaction logic for MediaFlyout.xaml
