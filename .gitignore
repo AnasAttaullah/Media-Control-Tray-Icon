@@ -10,6 +10,14 @@
 **/bin/
 **/obj/
 
+# Installer/deployment artifacts
+Installer/
+*.msi
+*.exe
+*.zip
+publish/
+packages/
+
 # Test results
 TestResults/
 *.trx

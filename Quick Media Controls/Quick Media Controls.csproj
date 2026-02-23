@@ -6,7 +6,7 @@
 		<UseWPF>true</UseWPF>
 		<RootNamespace>Quick_Media_Controls</RootNamespace>
 		<Nullable>enable</Nullable>
-		<AssemblyName>QuickMediaControls</AssemblyName>
+		<AssemblyName>Quick Media Controls</AssemblyName>
 		<Title>Quick Media Controls</Title>
 		<Description>A quick media controls flyout for Windows</Description>
 		<Company>Anas Attaullah</Company>
@@ -18,6 +18,7 @@
 	<ItemGroup>
 		<PackageReference Include="WPF-UI" Version="4.2.0" />
 		<PackageReference Include="WPF-UI.Tray" Version="4.2.0" />
+		<PackageReference Include="Autoupdater.NET.Official" Version="1.9.2" />
 	</ItemGroup>
 
 	<ItemGroup>

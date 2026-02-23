@@ -1,4 +1,5 @@
-﻿using Quick_Media_Controls.Services;
+﻿using AutoUpdaterDotNET;
+using Quick_Media_Controls.Services;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -80,6 +81,19 @@ namespace Quick_Media_Controls
             // Register the TrayIcon
             RegisterTrayIcon();
             UpdateTrayIcon();
+
+            // Configure AutoUpdater (once, simple)
+            AutoUpdater.ShowSkipButton = true;
+            AutoUpdater.ShowRemindLaterButton = true;
+            AutoUpdater.Mandatory = false;
+            AutoUpdater.UpdateMode = Mode.Normal;
+
+            // Check for updates in background after UI is ready
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2000);
+                AutoUpdater.Start("https://raw.githubusercontent.com/AnasAttaullah/Quick-Media-Controls/main/update.xml");
+            });
         }
 
         protected override void OnExit(ExitEventArgs e)
