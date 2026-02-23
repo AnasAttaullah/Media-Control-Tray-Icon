@@ -1,9 +1,10 @@
 #define MyAppName "Quick Media Controls"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "Anas Attaullah"
 #define MyAppURL "https://github.com/AnasAttaullah/Quick-Media-Controls"
 #define MyAppExeName "Quick Media Controls.exe"
 #define MyAppId "{{55A7F81D-F251-4D10-BD90-01662BB5EE87}"
+#define DotNetInstallerName "windowsdesktop-runtime-8.0.24-win-x64.exe"
 
 [Setup]
 AppId={#MyAppId}
@@ -24,7 +25,7 @@ SetupIconFile=Quick Media Controls\Assets\Icons\applicationIcon.ico
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\{#MyAppExeName}
@@ -36,10 +37,11 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
-Name: "startup"; Description: "Launch at Windows startup"; GroupDescription: "Startup Options:"; Flags: checkedonce
+Name: "startup"; Description: "Launch at Windows startup (Recommended)"; GroupDescription: "Startup Options:"; Flags: checkedonce
 
 [Files]
-Source: "Quick Media Controls\bin\Release\net8.0-windows10.0.19041.0\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Quick Media Controls\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Quick Media Controls\Assets\{#DotNetInstallerName}"; DestDir: "{tmp}"; Flags: deleteafterinstall; Check: not IsDotNetInstalled
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -48,32 +50,31 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startup
 
 [Run]
+Filename: "{tmp}\{#DotNetInstallerName}"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing .NET 8 Desktop Runtime..."; Flags: waituntilterminated; Check: not IsDotNetInstalled
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
 
 [Code]
-function IsDotNetInstalled(RuntimeName: string; MinVersion: string): Boolean;
+function IsDotNetInstalled: Boolean;
 var
-  ResultCode: Integer;
-  Output: AnsiString;
+  Names: TArrayOfString;
+  I: Integer;
 begin
-  Result := Exec('dotnet.exe', '--list-runtimes', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
-end;
+  Result := False;
 
-function InitializeSetup(): Boolean;
-var
-  ResultCode: Integer;
-begin
-  if not IsDotNetInstalled('Microsoft.WindowsDesktop.App', '8.0.0') then
+  if RegGetSubkeyNames(
+       HKLM,
+       'SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.WindowsDesktop.App',
+       Names) then
   begin
-    if MsgBox('This application requires .NET 8 Desktop Runtime.'#13#13
-           'Would you like to download it now?', mbConfirmation, MB_YESNO) = IDYES then
+    for I := 0 to GetArrayLength(Names) - 1 do
     begin
-      ShellExec('open', 'https://dotnet.microsoft.com/download/dotnet/8.0', '', '', SW_SHOW, ewNoWait, ResultCode);
+      if Pos('8.', Names[I]) = 1 then
+      begin
+        Result := True;
+        Exit;
+      end;
     end;
-    Result := True;
-  end
-  else
-    Result := True;
+  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
