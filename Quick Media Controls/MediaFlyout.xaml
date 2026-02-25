@@ -29,13 +29,13 @@
                 Header="Move Flyout"
                 IsCheckable="True"
                 IsChecked="{Binding _IsDragEnabled, Mode=TwoWay}" />
-            <MenuItem Header="Github" Click="GithubMenuItem_Click">
+            <MenuItem Header="On Github" Click="GithubMenuItem_Click">
                 <MenuItem.Icon>
-                    <ui:SymbolIcon Symbol="Star20" Filled="True" Foreground="Gold"/>
+                    <ui:SymbolIcon FontSize="18" Symbol="Star20" Filled="True" Foreground="Gold"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
-            <MenuItem Click="Exit_Click" Header="Exit" />
+            <MenuItem Click="Exit_Click" Header="Exit Application" />
 
         </ContextMenu>
     </Window.ContextMenu>
