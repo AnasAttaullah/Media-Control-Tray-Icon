@@ -14,12 +14,12 @@ using Wpf.Ui.Tray.Controls;
 namespace Quick_Media_Controls
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    ///  Application entry point managing media session integration and system tray icon.
     /// </summary>
     public partial class App : Application
     {
-        private NotifyIcon trayIcon;
-        private MediaFlyout mediaFlyout;
+        private NotifyIcon _trayIcon;
+        private MediaFlyout? _mediaFlyout;
 
         private ImageSource noMediaLightIcon;
         private ImageSource noMediaDarkIcon;
@@ -34,26 +34,9 @@ namespace Quick_Media_Controls
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            
-            // Create a hidden window to provide message pump for tray icon
-            MainWindow = new Window
-            {
-                Width = 0,
-                Height = 0,
-                WindowStyle = WindowStyle.ToolWindow,
-                ShowInTaskbar = false,
-                ShowActivated = false,
-                AllowsTransparency = false,
-                Visibility = Visibility.Hidden,
-                Left = -10000,
-                Top = -10000
-            };
-            
-            MainWindow.Show();
-            MainWindow.Hide();
-
+           
             currentAppTheme = ApplicationThemeManager.GetAppTheme();
-            trayIcon = (NotifyIcon)FindResource("trayIcon");
+            _trayIcon = (NotifyIcon)FindResource("trayIcon");
 
             try
             {
@@ -67,10 +50,9 @@ namespace Quick_Media_Controls
             }
             PreloadIconAssets();
 
-            // Events
-            trayIcon.LeftClick += TrayIcon_LeftClickAsync;
-            trayIcon.LeftDoubleClick += TrayIcon_LeftDoubleClickAsync;
-            trayIcon.RightClick += TrayIcon_RightClick;
+            _trayIcon.LeftClick += TrayIcon_LeftClickAsync;
+            _trayIcon.LeftDoubleClick += TrayIcon_LeftDoubleClickAsync;
+            _trayIcon.RightClick += TrayIcon_RightClick;
 
             _mediaService.SessionChanged += MediaService_SessionChanged;
             _mediaService.PlaybackInfoChanged += MediaService_PlaybackInfoChanged;
@@ -78,39 +60,43 @@ namespace Quick_Media_Controls
 
             ApplicationThemeManager.Changed += ApplicationThemeManager_Changed;
 
-            // Register the TrayIcon
+            // Hidden window to provide message pump for tray icon
+            MainWindow = new Window
+            {
+                Width = 0,
+                Height = 0,
+                WindowStyle = WindowStyle.ToolWindow,
+                ShowInTaskbar = false,
+                ShowActivated = false,
+                AllowsTransparency = false,
+                Visibility = Visibility.Hidden,
+                Left = -10000,
+                Top = -10000
+            };
+
+            MainWindow.Show();
+            MainWindow.Hide();
+
             RegisterTrayIcon();
             UpdateTrayIcon();
-
-            // Configure AutoUpdater (once, simple)
-            AutoUpdater.ShowSkipButton = true;
-            AutoUpdater.ShowRemindLaterButton = true;
-            AutoUpdater.Mandatory = false;
-            AutoUpdater.UpdateMode = Mode.Normal;
-
-            // Check for updates in background after UI is ready
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(2000);
-                AutoUpdater.Start("https://raw.githubusercontent.com/AnasAttaullah/Quick-Media-Controls/main/update.xml");
-            });
+            ConfigureAutoUpdater();
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
             ApplicationThemeManager.Changed -= ApplicationThemeManager_Changed;
 
-            if (trayIcon != null)
+            if (_trayIcon != null)
             {
-                trayIcon.LeftClick -= TrayIcon_LeftClickAsync;
-                trayIcon.LeftDoubleClick -= TrayIcon_LeftDoubleClickAsync;
-                trayIcon.RightClick -= TrayIcon_RightClick;
+                _trayIcon.LeftClick -= TrayIcon_LeftClickAsync;
+                _trayIcon.LeftDoubleClick -= TrayIcon_LeftDoubleClickAsync;
+                _trayIcon.RightClick -= TrayIcon_RightClick;
                 
-                if (trayIcon.IsRegistered)
+                if (_trayIcon.IsRegistered)
                 {
-                    trayIcon.Unregister();
+                    _trayIcon.Unregister();
                 }
-                trayIcon.Dispose();
+                _trayIcon.Dispose();
             }
 
             if (_mediaService != null)
@@ -120,23 +106,21 @@ namespace Quick_Media_Controls
                 _mediaService.MediaPropertiesChanged -= MediaService_MediaPropertiesChanged;
                 _mediaService.Dispose();
             }
-            if (mediaFlyout != null)
+            if (_mediaFlyout != null)
             {
-                mediaFlyout.Close();
-                mediaFlyout = null;
+                _mediaFlyout.Close();
+                _mediaFlyout = null;
             }
 
             MainWindow?.Close();
-
             base.OnExit(e);
         }
 
-        // Methods
         private void RegisterTrayIcon()
         {
-            if (!trayIcon.IsRegistered)
+            if (!_trayIcon.IsRegistered)
             {
-                trayIcon.Register();
+                _trayIcon.Register();
             }
         }
         private static ImageSource LoadTrayIcon(string relativePath)
@@ -148,9 +132,66 @@ namespace Quick_Media_Controls
                 BitmapCreateOptions.None,
                 BitmapCacheOption.OnLoad);
 
-            image.Freeze(); // important for cross-thread usage
+            image.Freeze();
 
             return image;
+        }
+        private void UpdateTrayIcon()
+        {
+            if (_mediaService == null) return;
+
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(UpdateTrayIcon);
+                return;
+            }
+
+            bool isPlaying = _mediaService.IsPlaying();
+            bool isDarkMode = currentAppTheme == ApplicationTheme.Dark;
+
+            if (_mediaService.CurrentSession is null)
+            {
+                _trayIcon.Icon = isDarkMode ? noMediaDarkIcon : noMediaLightIcon;
+                _trayIcon.TooltipText = "No Media Playing";
+                return;
+            }
+
+            _trayIcon.Icon = isPlaying
+                ? (isDarkMode ? pauseDarkIcon : pauseLightIcon)
+                : (isDarkMode ? playDarkIcon : playLightIcon);
+
+            _trayIcon.TooltipText = _mediaService.CurrentPlaybackInfo?.PlaybackStatus.ToString() ?? "Unknown";
+
+            if (_mediaFlyout != null)
+            {
+                _mediaFlyout.UpdateIcons();
+            }
+        }
+        public void UpdatePlaybackButtonsStatus()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(UpdatePlaybackButtonsStatus);
+                return;
+            }
+            if (_mediaFlyout != null && _mediaService.CurrentPlaybackInfo != null)
+            {
+                _mediaFlyout.NextTrackButton.IsEnabled = _mediaService.IsNextEnabled();
+                _mediaFlyout.PreviousTrackButton.IsEnabled = _mediaService.IsPreviousEnabled();
+            }
+        }
+        private void ConfigureAutoUpdater()
+        {
+            AutoUpdater.ShowSkipButton = true;
+            AutoUpdater.ShowRemindLaterButton = true;
+            AutoUpdater.Mandatory = false;
+            AutoUpdater.UpdateMode = Mode.Normal;
+
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2000);
+                AutoUpdater.Start("https://raw.githubusercontent.com/AnasAttaullah/Quick-Media-Controls/main/update.xml");
+            });
         }
         private void PreloadIconAssets()
         {
@@ -163,95 +204,34 @@ namespace Quick_Media_Controls
         }
 
 
-        private void UpdateTrayIcon()
-        {
-            // Check if we're already on the UI thread
-            if (!Dispatcher.CheckAccess())
-            {
-                Dispatcher.Invoke(UpdateTrayIcon);
-                return;
-            }
-
-            bool isPlaying = _mediaService.IsPlaying();
-                         bool isDarkMode = currentAppTheme == ApplicationTheme.Dark;
-
-                if (_mediaService.CurrentSession is null)
-                {
-                    trayIcon.Icon = isDarkMode ? noMediaDarkIcon : noMediaLightIcon;
-                    trayIcon.TooltipText = "No Media Playing";
-                    return;
-                }
-
-                trayIcon.Icon = isPlaying
-                    ? (isDarkMode ? pauseDarkIcon : pauseLightIcon)
-                    : (isDarkMode ? playDarkIcon : playLightIcon);
-
-            trayIcon.TooltipText = _mediaService.CurrentPlaybackInfo?.PlaybackStatus.ToString() ?? "Unknown";
-            
-            if (mediaFlyout != null)
-            {
-                mediaFlyout.UpdateIcon();
-            }
-        }
-
-        public void UpdatePlaybackButtonsStatus()
-        {
-            if (!Dispatcher.CheckAccess())
-            {
-                Dispatcher.Invoke(UpdatePlaybackButtonsStatus);
-                return;
-            }
-            if (mediaFlyout != null && _mediaService.CurrentPlaybackInfo != null) {
-                mediaFlyout.NextTrackButton.IsEnabled = _mediaService.IsNextEnabled();
-                mediaFlyout.PreviousTrackButton.IsEnabled = _mediaService.IsPreviousEnabled();
-            }
-        }
-
-        // EVENT HANDLERS
-
         private async void TrayIcon_LeftClickAsync([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
-             await _mediaService.TogglePlayPauseAsync();
+            await _mediaService.TogglePlayPauseAsync();
         }
 
         private async void TrayIcon_LeftDoubleClickAsync([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
-            await _mediaService.SkipNextAsync();
+             await _mediaService.SkipNextAsync();
         }
-         
         private async void TrayIcon_RightClick([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("Right mouse click");
-            if(mediaFlyout == null)
-            {
-                mediaFlyout = new MediaFlyout(_mediaService);
-            }
-            _mediaService.FetchMediaAsync();
+            _mediaFlyout ??= new MediaFlyout(_mediaService);
+            await _mediaService.FetchMediaAsync();
             UpdatePlaybackButtonsStatus();
-            mediaFlyout.showFlyout();
-            
+            _mediaFlyout.ShowFlyout();
         }
-
         private void MediaService_MediaPropertiesChanged(object? sender, EventArgs e)
         {
-            // update the details on the popup
-            // new thumbnails and stuuff
-            if (mediaFlyout != null)
-            {
-                mediaFlyout.UpdateMediaInfo();
-            }
-            }
+            _mediaFlyout?.UpdateMediaInfo();
+        }
         private void MediaService_SessionChanged(object? sender, GlobalSystemMediaTransportControlsSessionManager e)
-        {
-            // when the session is closed 
+        { 
             UpdateTrayIcon();        
         }
-
         private void MediaService_PlaybackInfoChanged(object? sender, GlobalSystemMediaTransportControlsSessionPlaybackInfo e)
         {
             UpdateTrayIcon();
             UpdatePlaybackButtonsStatus();
-            Debug.WriteLine(e.PlaybackStatus.ToString());
         }
         private void ApplicationThemeManager_Changed(ApplicationTheme currentApplicationTheme, System.Windows.Media.Color systemAccent)
         {

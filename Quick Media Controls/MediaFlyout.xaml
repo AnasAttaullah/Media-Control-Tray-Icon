@@ -1,10 +1,10 @@
 ﻿<ui:FluentWindow
     x:Class="Quick_Media_Controls.MediaFlyout"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="MediaFlyout"
     Width="400"
     Height="120"
@@ -29,8 +29,14 @@
                 Header="Move Flyout"
                 IsCheckable="True"
                 IsChecked="{Binding _IsDragEnabled, Mode=TwoWay}" />
+            <MenuItem Header="Github" Click="GithubMenuItem_Click">
+                <MenuItem.Icon>
+                    <ui:SymbolIcon Symbol="Star20" Filled="True" Foreground="Gold"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <Separator />
             <MenuItem Click="Exit_Click" Header="Exit" />
+
         </ContextMenu>
     </Window.ContextMenu>
     <Grid>

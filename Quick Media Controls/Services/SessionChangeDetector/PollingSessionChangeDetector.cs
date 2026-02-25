@@ -20,6 +20,7 @@ namespace Quick_Media_Controls.Services.SessionChangeDetector
             _sessionManager = sessionManager;
             _onSessionChanged = onSessionChanged;
         }
+
         public void Start()
         {
             _pollTimer = new Timer(CheckForSessionChange, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));

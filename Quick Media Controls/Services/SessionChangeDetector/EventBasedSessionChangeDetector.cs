@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Media.Control;
 
 namespace Quick_Media_Controls.Services.SessionChangeDetector
@@ -16,11 +12,13 @@ namespace Quick_Media_Controls.Services.SessionChangeDetector
     {
         private readonly GlobalSystemMediaTransportControlsSessionManager _sessionManager;
         private readonly Action<GlobalSystemMediaTransportControlsSession?> _onSessionChanged;
+
         public EventBasedSessionChangeDetector(GlobalSystemMediaTransportControlsSessionManager sessionManager, Action<GlobalSystemMediaTransportControlsSession?> onSessionChanged)
         {
             _sessionManager = sessionManager;
             _onSessionChanged = onSessionChanged;
         }
+
         public void Start()
         {
             _sessionManager.SessionsChanged += OnSessionsChanged;

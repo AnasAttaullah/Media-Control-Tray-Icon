@@ -1,5 +1,6 @@
 ﻿using Quick_Media_Controls.Services;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,7 +12,7 @@ using Wpf.Ui.Controls;
 namespace Quick_Media_Controls
 {
     /// <summary>
-    /// Interaction logic for MediaFlyout.xaml
+    /// Interaction logic for MediaFlyout
     /// </summary>
     public partial class MediaFlyout : FluentWindow
     {
@@ -22,35 +23,43 @@ namespace Quick_Media_Controls
         {
             ApplicationThemeManager.ApplySystemTheme();
             ApplicationAccentColorManager.ApplySystemAccent();
+
             _IsDragEnabled = false;
             _sessionManager = sessionManager;
+            
             Left = SystemParameters.WorkArea.Right - 300 - 110;
             Top = SystemParameters.WorkArea.Bottom - 130;
+            
             InitializeComponent();
-            UpdateIcon();
+            UpdateIcons();
             UpdateMediaInfo();
-            showFlyout();
         }
 
-        public void UpdateIcon()
+        public void UpdateIcons()
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(UpdateIcon);
+                Dispatcher.Invoke(UpdateIcons);
                 return;
             }
-            if (_sessionManager.CurrentSession == null)
-            {
-                PlaybackButtonsGrid.Visibility = Visibility.Collapsed;
-                return;
-            }
-            if (PlaybackButtonsGrid.Visibility != Visibility.Visible)
-            {
-                PlaybackButtonsGrid.Visibility = Visibility.Visible;
-            }
+            if (_sessionManager.CurrentSession == null) return;
             playPauseIcon.Symbol = (_sessionManager.IsPlaying()) ? SymbolRegular.Pause12 : SymbolRegular.Play12;
         }
+        public void ShowFlyout()
+        {
+            UpdateMediaInfo();
+            this.Visibility = Visibility.Visible;
 
+            // Force topmost activation workaround for WPF
+            this.Topmost = true;
+            this.Topmost = false;
+            this.Topmost = true;
+
+            this.Activate();
+            this.Focus();
+
+            Keyboard.Focus(this);
+        }
         public async void UpdateMediaInfo()
         {
             if (!Dispatcher.CheckAccess())
@@ -69,7 +78,6 @@ namespace Quick_Media_Controls
                 playingMediaTitle.Text = (mediaTitle.Length > 35) ? mediaTitle.Substring(0, 32) + "..." : mediaTitle;
                 playingMediaArtist.Text = _sessionManager.CurrentMediaProperties.Artist;
 
-                // Update thumbnail
                 var thumbnail = await LoadMediaThumbnailAsync(_sessionManager.CurrentMediaProperties.Thumbnail);
                 playingMediaThumbnail.Source = thumbnail;
             }
@@ -77,11 +85,8 @@ namespace Quick_Media_Controls
             {
                 mediaPlayingGrid.Visibility = Visibility.Collapsed;
                 noMediaPlayingGrid.Visibility = Visibility.Visible;
-                playingMediaTitle.Text = "It's a bit quiet in here...";
-                playingMediaArtist.Text = "Time to break the silence";
             }
         }
-
         private async Task<BitmapImage?> LoadMediaThumbnailAsync(Windows.Storage.Streams.IRandomAccessStreamReference? thumbnailRef)
         {
             if (thumbnailRef == null)
@@ -97,14 +102,13 @@ namespace Quick_Media_Controls
                 bitmap.BeginInit();
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
 
-                // Copy to memory stream to avoid stream disposal issues
                 using var memStream = new MemoryStream();
                 await stream.AsStreamForRead().CopyToAsync(memStream);
                 memStream.Position = 0;
 
                 bitmap.StreamSource = memStream;
                 bitmap.EndInit();
-                bitmap.Freeze(); // Important for cross-thread usage
+                bitmap.Freeze();
 
                 return bitmap;
             }
@@ -115,61 +119,49 @@ namespace Quick_Media_Controls
             }
         }
 
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            base.OnMouseLeftButtonDown(e);
-
-            if (e.ButtonState == MouseButtonState.Pressed && _IsDragEnabled)
-                DragMove();
-        }
-
-        private async void PreviousButton_ClickAsync(object sender, RoutedEventArgs e)
-        {
-            await _sessionManager.SkipPreviousAsync();
-        }
-
         private async void PlayPauseButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             await _sessionManager.TogglePlayPauseAsync();
         }
-
         private async void NextButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             await _sessionManager.SkipNextAsync();
         }
-
-        private void Flyout_Deactivated(object sender, EventArgs e)
+        private async void PreviousButton_ClickAsync(object sender, RoutedEventArgs e)
         {
-            Hide();
+            await _sessionManager.SkipPreviousAsync();
         }
-
-        internal void showFlyout()
+        private void GithubMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            UpdateMediaInfo();
-            // Make visible first
-            this.Visibility = Visibility.Visible;
+            const string url = "https://github.com/AnasAttaullah/Quick-Media-Controls";
 
-            // Temporarily toggle Topmost to force Windows to treat it as foreground
-            this.Topmost = true;
-            this.Topmost = false;
-            this.Topmost = true;
-
-            // Activate + Focus
-            this.Activate();
-            this.Focus();
-
-            Keyboard.Focus(this);
+            try
+            {
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to open GitHub link: {ex}");
+            }
         }
-
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
-
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            base.OnMouseLeftButtonDown(e);
+            if (e.ButtonState == MouseButtonState.Pressed && _IsDragEnabled)
+                DragMove();
+        }
         private void MoveWindowMenuItem_Click(object sender, RoutedEventArgs e)
         {
             _IsDragEnabled = _IsDragEnabled ? false : true;
             this.Cursor = _IsDragEnabled ? Cursors.SizeAll : Cursors.Arrow;
+        }
+        private void Flyout_Deactivated(object sender, EventArgs e)
+        {
+            Hide();
         }
     }
 }

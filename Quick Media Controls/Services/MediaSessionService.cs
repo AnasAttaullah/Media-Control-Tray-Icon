@@ -1,11 +1,14 @@
 ﻿using Quick_Media_Controls.Services.SessionChangeDetector;
 using System;
-using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 
 namespace Quick_Media_Controls.Services
 {
+    /// <summary>
+    /// Manages Windows media session interactions and monitors session changes.
+    /// </summary>
     public class MediaSessionService : IDisposable
     {
         public GlobalSystemMediaTransportControlsSessionManager? SessionManager { get; private set; }
@@ -20,36 +23,41 @@ namespace Quick_Media_Controls.Services
         private ISessionChangeDetector? _sessionChangeDetector;
         private string? _lastSessionId;
 
-        // Methods
         public async Task InitializeAsync()
         {
-            SessionManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-            CurrentSession = SessionManager.GetCurrentSession();
-
-            if (CurrentSession != null)
+            try
             {
-                _lastSessionId = CurrentSession.SourceAppUserModelId;
-                CurrentPlaybackInfo = CurrentSession.GetPlaybackInfo();
-                CurrentSession.PlaybackInfoChanged += OnCurrentSession_PlaybackInfoChanged;
-                CurrentSession.MediaPropertiesChanged += OnCurrentSession_MediaPropertiesChanged;
+                SessionManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
+                CurrentSession = SessionManager.GetCurrentSession();
+
+                if (CurrentSession != null)
+                {
+                    _lastSessionId = CurrentSession.SourceAppUserModelId;
+                    CurrentPlaybackInfo = CurrentSession.GetPlaybackInfo();
+                    CurrentSession.PlaybackInfoChanged += OnCurrentSession_PlaybackInfoChanged;
+                    CurrentSession.MediaPropertiesChanged += OnCurrentSession_MediaPropertiesChanged;
+                }
+
+                var osVersion = Environment.OSVersion;
+                var isWindows10 = osVersion.Version.Major == 10 && osVersion.Version.Build < 22000;
+
+                if (isWindows10)
+                {
+                    System.Diagnostics.Debug.WriteLine("Windows 10 detected: Using polling strategy");
+                    _sessionChangeDetector = new PollingSessionChangeDetector(SessionManager, OnSessionChangeDetected);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Windows 11+ detected: Using event-based strategy");
+                    _sessionChangeDetector = new EventBasedSessionChangeDetector(SessionManager, OnSessionChangeDetected);
+                }
+
+                _sessionChangeDetector.Start();
             }
-
-            // Detecting OS
-            var osVersion = Environment.OSVersion;
-            var isWindows10 = osVersion.Version.Major == 10 && osVersion.Version.Build < 22000;
-
-            if (isWindows10)
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Windows 10 detected: Using polling strategy");
-                _sessionChangeDetector = new PollingSessionChangeDetector(SessionManager, OnSessionChangeDetected);
+                Debug.WriteLine($"Failed to initialize MediaSessionService: {ex.Message}");
             }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("Windows 11+ detected: Using event-based strategy");
-                _sessionChangeDetector = new EventBasedSessionChangeDetector(SessionManager, OnSessionChangeDetected);
-            }
-
-            _sessionChangeDetector.Start();
         }
 
         private void OnSessionChangeDetected(GlobalSystemMediaTransportControlsSession? newSession)
@@ -90,36 +98,55 @@ namespace Quick_Media_Controls.Services
             MediaPropertiesChanged?.Invoke(this, EventArgs.Empty);
         }
 
-
-        public async void FetchMediaAsync()
-        {
-            if (CurrentSession != null)
-            {
-                CurrentMediaProperties = await CurrentSession.TryGetMediaPropertiesAsync();
-            }
-        }
-
         public async Task TogglePlayPauseAsync()
         {
-            if (CurrentSession != null)
+            try
             {
+                if (CurrentSession == null) return;
                 await CurrentSession.TryTogglePlayPauseAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error toggling playback: {ex.Message}");
             }
         }
 
         public async Task SkipNextAsync()
         {
-            if (CurrentSession != null)
+            try
             {
+                if (CurrentSession == null) return;
                 await CurrentSession.TrySkipNextAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error skipping to next track: {ex.Message}");
             }
         }
 
         public async Task SkipPreviousAsync()
         {
-            if (CurrentSession != null)
+            try
             {
+                if (CurrentSession == null) return;
                 await CurrentSession.TrySkipPreviousAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error skipping to previous track: {ex.Message}");
+            }
+        }
+
+        public async Task FetchMediaAsync()
+        {
+            try
+            {
+                if (CurrentSession == null) return;
+                CurrentMediaProperties = await CurrentSession.TryGetMediaPropertiesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error fetching media properties: {ex.Message}");
             }
         }
 
@@ -141,27 +168,39 @@ namespace Quick_Media_Controls.Services
         {
             return IsNextEnabled() || IsPreviousEnabled();
         }
-
-        // Event Handlers   
+ 
         private async void OnCurrentSession_MediaPropertiesChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args)
         {
-            if (CurrentSession != null)
+            try
             {
-                CurrentMediaProperties = await CurrentSession.TryGetMediaPropertiesAsync();
-            }
+                if (CurrentSession != null)
+                {
+                    CurrentMediaProperties = await CurrentSession.TryGetMediaPropertiesAsync();
+                }
                 MediaPropertiesChanged?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error fetching media properties: {ex.Message}");
+            }
         }
 
         private void OnCurrentSession_PlaybackInfoChanged(GlobalSystemMediaTransportControlsSession sender, PlaybackInfoChangedEventArgs args)
         {
-            CurrentPlaybackInfo = CurrentSession?.GetPlaybackInfo();
-            if (CurrentPlaybackInfo != null)
+            try
             {
-                PlaybackInfoChanged?.Invoke(this, CurrentPlaybackInfo);
+                CurrentPlaybackInfo = CurrentSession?.GetPlaybackInfo();
+                if (CurrentPlaybackInfo != null)
+                {
+                    PlaybackInfoChanged?.Invoke(this, CurrentPlaybackInfo);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error updating playback info: {ex.Message}");
             }
         }
 
-        // On Dispose
         public void Dispose()
         {
             _sessionChangeDetector?.Dispose();
