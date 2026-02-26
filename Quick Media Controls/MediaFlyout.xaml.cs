@@ -11,13 +11,13 @@ using Wpf.Ui.Controls;
 
 namespace Quick_Media_Controls
 {
-    /// <summary>
-    /// Interaction logic for MediaFlyout
-    /// </summary>
     public partial class MediaFlyout : FluentWindow
     {
         private readonly MediaSessionService _sessionManager;
         private bool _IsDragEnabled;
+
+        private string? _cachedThumbnailKey;
+        private BitmapImage? _cachedThumbnail;
 
         public MediaFlyout(MediaSessionService sessionManager)
         {
@@ -26,28 +26,27 @@ namespace Quick_Media_Controls
 
             _IsDragEnabled = false;
             _sessionManager = sessionManager;
-            
+
             Left = SystemParameters.WorkArea.Right - 300 - 110;
             Top = SystemParameters.WorkArea.Bottom - 130;
-            
+
             InitializeComponent();
             UpdateIcons();
-            UpdateMediaInfo();
         }
 
         public void UpdateIcons()
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(UpdateIcons);
+                Dispatcher.InvokeAsync(UpdateIcons);
                 return;
             }
             if (_sessionManager.CurrentSession == null) return;
-            playPauseIcon.Symbol = (_sessionManager.IsPlaying()) ? SymbolRegular.Pause12 : SymbolRegular.Play12;
+            playPauseIcon.Symbol = _sessionManager.IsPlaying() ? SymbolRegular.Pause12 : SymbolRegular.Play12;
         }
+
         public void ShowFlyout()
         {
-            UpdateMediaInfo();
             this.Visibility = Visibility.Visible;
 
             // Force topmost activation workaround for WPF
@@ -57,16 +56,22 @@ namespace Quick_Media_Controls
 
             this.Activate();
             this.Focus();
-
             Keyboard.Focus(this);
+
+            UpdateMediaInfo();
         }
+
         public async void UpdateMediaInfo()
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(UpdateMediaInfo);
+                Dispatcher.InvokeAsync(UpdateMediaInfo);
                 return;
             }
+
+            // Skip all work (including async thumbnail I/O) when not visible
+            if (Visibility != Visibility.Visible) return;
+
             if (_sessionManager.CurrentMediaProperties != null)
             {
                 if (mediaPlayingGrid.Visibility != Visibility.Visible)
@@ -74,8 +79,9 @@ namespace Quick_Media_Controls
                     mediaPlayingGrid.Visibility = Visibility.Visible;
                     noMediaPlayingGrid.Visibility = Visibility.Collapsed;
                 }
+
                 var mediaTitle = _sessionManager.CurrentMediaProperties.Title;
-                playingMediaTitle.Text = (mediaTitle.Length > 35) ? mediaTitle.Substring(0, 32) + "..." : mediaTitle;
+                playingMediaTitle.Text = mediaTitle.Length > 35 ? mediaTitle[..32] + "..." : mediaTitle;
                 playingMediaArtist.Text = _sessionManager.CurrentMediaProperties.Artist;
 
                 var thumbnail = await LoadMediaThumbnailAsync(_sessionManager.CurrentMediaProperties.Thumbnail);
@@ -87,10 +93,15 @@ namespace Quick_Media_Controls
                 noMediaPlayingGrid.Visibility = Visibility.Visible;
             }
         }
+
         private async Task<BitmapImage?> LoadMediaThumbnailAsync(Windows.Storage.Streams.IRandomAccessStreamReference? thumbnailRef)
         {
             if (thumbnailRef == null)
                 return null;
+
+            var key = $"{_sessionManager.CurrentMediaProperties?.Title}|{_sessionManager.CurrentMediaProperties?.Artist}";
+            if (_cachedThumbnailKey == key && _cachedThumbnail != null)
+                return _cachedThumbnail;
 
             try
             {
@@ -101,6 +112,7 @@ namespace Quick_Media_Controls
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.DecodePixelHeight = 90; // Decode at display size ( image box is 90x90 )
 
                 using var memStream = new MemoryStream();
                 await stream.AsStreamForRead().CopyToAsync(memStream);
@@ -110,11 +122,13 @@ namespace Quick_Media_Controls
                 bitmap.EndInit();
                 bitmap.Freeze();
 
+                _cachedThumbnailKey = key;
+                _cachedThumbnail = bitmap;
                 return bitmap;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to load thumbnail: {ex.Message}");
+                Debug.WriteLine($"Failed to load thumbnail: {ex.Message}");
                 return null;
             }
         }
@@ -123,18 +137,20 @@ namespace Quick_Media_Controls
         {
             await _sessionManager.TogglePlayPauseAsync();
         }
+
         private async void NextButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             await _sessionManager.SkipNextAsync();
         }
+
         private async void PreviousButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             await _sessionManager.SkipPreviousAsync();
         }
+
         private void GithubMenuItem_Click(object sender, RoutedEventArgs e)
         {
             const string url = "https://github.com/AnasAttaullah/Quick-Media-Controls";
-
             try
             {
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
@@ -144,21 +160,25 @@ namespace Quick_Media_Controls
                 Debug.WriteLine($"Failed to open GitHub link: {ex}");
             }
         }
+
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
+
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             base.OnMouseLeftButtonDown(e);
             if (e.ButtonState == MouseButtonState.Pressed && _IsDragEnabled)
                 DragMove();
         }
+
         private void MoveWindowMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            _IsDragEnabled = _IsDragEnabled ? false : true;
-            this.Cursor = _IsDragEnabled ? Cursors.SizeAll : Cursors.Arrow;
+            _IsDragEnabled = !_IsDragEnabled;
+            Cursor = _IsDragEnabled ? Cursors.SizeAll : Cursors.Arrow;
         }
+
         private void Flyout_Deactivated(object sender, EventArgs e)
         {
             Hide();

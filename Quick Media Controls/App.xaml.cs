@@ -123,6 +123,7 @@ namespace Quick_Media_Controls
                 _trayIcon.Register();
             }
         }
+
         private static ImageSource LoadTrayIcon(string relativePath)
         {
             var uri = new Uri($"pack://application:,,,/{relativePath}", UriKind.Absolute);
@@ -136,13 +137,14 @@ namespace Quick_Media_Controls
 
             return image;
         }
+
         private void UpdateTrayIcon()
         {
             if (_mediaService == null) return;
 
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(UpdateTrayIcon);
+                Dispatcher.InvokeAsync(UpdateTrayIcon);
                 return;
             }
 
@@ -167,11 +169,13 @@ namespace Quick_Media_Controls
                 _mediaFlyout.UpdateIcons();
             }
         }
+
+
         public void UpdatePlaybackButtonsStatus()
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(UpdatePlaybackButtonsStatus);
+                Dispatcher.InvokeAsync(UpdatePlaybackButtonsStatus);
                 return;
             }
             if (_mediaFlyout != null && _mediaService.CurrentPlaybackInfo != null)
@@ -180,6 +184,7 @@ namespace Quick_Media_Controls
                 _mediaFlyout.PreviousTrackButton.IsEnabled = _mediaService.IsPreviousEnabled();
             }
         }
+
         private void ConfigureAutoUpdater()
         {
             AutoUpdater.ShowSkipButton = true;
@@ -193,6 +198,7 @@ namespace Quick_Media_Controls
                 AutoUpdater.Start("https://raw.githubusercontent.com/AnasAttaullah/Quick-Media-Controls/main/update.xml");
             });
         }
+
         private void PreloadIconAssets()
         {
             playLightIcon = LoadTrayIcon("Assets\\Icons\\playLight.ico");
@@ -213,6 +219,7 @@ namespace Quick_Media_Controls
         {
              await _mediaService.SkipNextAsync();
         }
+
         private async void TrayIcon_RightClick([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
             _mediaFlyout ??= new MediaFlyout(_mediaService);
@@ -220,19 +227,23 @@ namespace Quick_Media_Controls
             UpdatePlaybackButtonsStatus();
             _mediaFlyout.ShowFlyout();
         }
+
         private void MediaService_MediaPropertiesChanged(object? sender, EventArgs e)
         {
             _mediaFlyout?.UpdateMediaInfo();
         }
+
         private void MediaService_SessionChanged(object? sender, GlobalSystemMediaTransportControlsSessionManager e)
         { 
             UpdateTrayIcon();        
         }
+
         private void MediaService_PlaybackInfoChanged(object? sender, GlobalSystemMediaTransportControlsSessionPlaybackInfo e)
         {
             UpdateTrayIcon();
             UpdatePlaybackButtonsStatus();
         }
+
         private void ApplicationThemeManager_Changed(ApplicationTheme currentApplicationTheme, System.Windows.Media.Color systemAccent)
         {
             currentAppTheme = currentApplicationTheme;

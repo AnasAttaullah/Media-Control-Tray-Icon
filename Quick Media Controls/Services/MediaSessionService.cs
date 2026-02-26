@@ -210,6 +210,8 @@ namespace Quick_Media_Controls.Services
                 CurrentSession.PlaybackInfoChanged -= OnCurrentSession_PlaybackInfoChanged;
                 CurrentSession.MediaPropertiesChanged -= OnCurrentSession_MediaPropertiesChanged;
             }
+
+            GC.SuppressFinalize(this);
         }
     }
 
