@@ -39,7 +39,7 @@
 
         </ContextMenu>
     </Window.ContextMenu>
-    <Grid x:Name="Root" Opacity="1" Background="{ui:ThemeResource CardBackgroundFillColorDefaultBrush}">
+    <Grid x:Name="Root" Opacity="1">
         <!-- Media Playing Grid -->
         <Grid Name="mediaPlayingGrid" Margin="12,0" MouseLeftButtonDown="Window_MouseLeftButtonDown">
             <Grid.ColumnDefinitions>

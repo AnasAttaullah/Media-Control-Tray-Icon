@@ -253,7 +253,7 @@ namespace Quick_Media_Controls
             if (e.ButtonState == MouseButtonState.Pressed && _IsDragEnabled)
             {
                 DragMove();
-                _homeTop = this.Top; // Update home after user repositions the flyout
+                _homeTop = this.Top;
             }
         }
 
