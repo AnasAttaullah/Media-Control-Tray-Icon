@@ -66,21 +66,21 @@ namespace Quick_Media_Controls
 
         public void ShowFlyout()
         {
-            this.Opacity = 0;
+            Root.Opacity = 0;
             _isAnimatingClose = false;
             BeginAnimation(Window.TopProperty, null);
-            BeginAnimation(OpacityProperty, null);
+            Root.BeginAnimation(OpacityProperty, null);
 
-            this.Top = _homeTop;
-            this.Visibility = Visibility.Visible;
+            Top = _homeTop;
+            Visibility = Visibility.Visible;
 
             // Force topmost activation workaround for WPF
-            this.Topmost = true;
-            this.Topmost = false;
-            this.Topmost = true;
+            Topmost = true;
+            Topmost = false;
+            Topmost = true;
 
-            this.Activate();
-            this.Focus();
+            Activate();
+            Focus();
             Keyboard.Focus(this);
 
             // Fade-up: slide up 15px + fade in over 220ms with ease-out curve
@@ -92,7 +92,7 @@ namespace Quick_Media_Controls
                 EasingFunction = ease,
                 FillBehavior = FillBehavior.Stop
             };
-            slideUp.Completed += (_, _) => this.Top = _homeTop;
+            slideUp.Completed += (_, _) => Top = _homeTop;
             BeginAnimation(Window.TopProperty, slideUp);
 
             var fadeIn = new DoubleAnimation(0, 1, duration)
@@ -100,8 +100,8 @@ namespace Quick_Media_Controls
                 EasingFunction = ease,
                 FillBehavior = FillBehavior.Stop
             };
-            fadeIn.Completed += (_, _) => this.Opacity = 1;
-            BeginAnimation(OpacityProperty, fadeIn);
+            fadeIn.Completed += (_, _) => Root.Opacity = 1;
+            Root.BeginAnimation(OpacityProperty, fadeIn);
 
             UpdateMediaInfo();
         }
@@ -131,8 +131,10 @@ namespace Quick_Media_Controls
                 if (!_isAnimatingClose) return;
                 _isAnimatingClose = false;
                 Hide();
+                Root.Opacity = 1;
+                Top = _homeTop;
             };
-            BeginAnimation(OpacityProperty, fadeOut);
+            Root.BeginAnimation(OpacityProperty, fadeOut);
         }
 
         private void Flyout_Deactivated(object sender, EventArgs e)
