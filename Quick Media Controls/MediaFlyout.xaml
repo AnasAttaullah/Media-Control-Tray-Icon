@@ -1,10 +1,10 @@
 ﻿<ui:FluentWindow
     x:Class="Quick_Media_Controls.MediaFlyout"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="MediaFlyout"
     Width="400"
     Height="120"
@@ -29,9 +29,13 @@
                 Header="Move Flyout"
                 IsCheckable="True"
                 IsChecked="{Binding _IsDragEnabled, Mode=TwoWay}" />
-            <MenuItem Header="On Github" Click="GithubMenuItem_Click">
+            <MenuItem Click="GithubMenuItem_Click" Header="On Github">
                 <MenuItem.Icon>
-                    <ui:SymbolIcon FontSize="18" Symbol="Star20" Filled="True" Foreground="Gold"/>
+                    <ui:SymbolIcon
+                        Filled="True"
+                        FontSize="18"
+                        Foreground="Gold"
+                        Symbol="Star20" />
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
@@ -40,8 +44,11 @@
         </ContextMenu>
     </Window.ContextMenu>
     <Grid x:Name="Root" Opacity="1">
-        <!-- Media Playing Grid -->
-        <Grid Name="mediaPlayingGrid" Margin="12,0" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        <!--  Media Playing Grid  -->
+        <Grid
+            Name="mediaPlayingGrid"
+            Margin="12,0"
+            MouseLeftButtonDown="Window_MouseLeftButtonDown">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*" />
                 <ColumnDefinition Width="3*" />
@@ -53,8 +60,7 @@
                 Width="auto"
                 Height="90"
                 CornerRadius="8"
-                Visibility="Visible"
-                Source="pack://application:,,,/Assets/placeholder.jpg" />
+                Visibility="Visible" />
 
             <StackPanel
                 Grid.Column="1"
@@ -64,20 +70,18 @@
                     Name="playingMediaTitle"
                     FontSize="16"
                     FontTypography="BodyStrong"
-                    Foreground="{ui:ThemeResource TextFillColorPrimaryBrush}"
-                    Text="Borderline Official Music Video" />
+                    Foreground="{ui:ThemeResource TextFillColorPrimaryBrush}" />
                 <ui:TextBlock
                     Name="playingMediaArtist"
                     Margin="0,0,0,10"
                     FontTypography="Body"
-                    Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                    Text="Tame Impala" />
+                    Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}" />
                 <StackPanel
                     Name="PlaybackButtonsGrid"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
-                    <ui:Button Click="PreviousButton_ClickAsync" Name="PreviousTrackButton">
+                    <ui:Button Name="PreviousTrackButton" Click="PreviousButton_ClickAsync">
                         <ui:SymbolIcon
                             Filled="False"
                             FontSize="18"
@@ -93,7 +97,7 @@
                             FontSize="18"
                             Symbol="Play12" />
                     </ui:Button>
-                    <ui:Button Click="NextButton_ClickAsync" Name="NextTrackButton">
+                    <ui:Button Name="NextTrackButton" Click="NextButton_ClickAsync">
                         <ui:SymbolIcon
                             Filled="False"
                             FontSize="18"
@@ -103,8 +107,12 @@
             </StackPanel>
         </Grid>
 
-        <!-- No Media Playing Grid -->
-        <Grid Name="noMediaPlayingGrid" Visibility="Collapsed" Margin="12,0" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        <!--  No Media Playing Grid  -->
+        <Grid
+            Name="noMediaPlayingGrid"
+            Margin="12,0"
+            MouseLeftButtonDown="Window_MouseLeftButtonDown"
+            Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*" />
                 <ColumnDefinition Width="3*" />
@@ -115,8 +123,8 @@
                 Grid.Column="0"
                 Width="90"
                 Height="90"
-                FontSize="68"
                 Filled="True"
+                FontSize="68"
                 Symbol="MusicNoteOff224" />
 
             <StackPanel
@@ -126,8 +134,8 @@
                 VerticalAlignment="Center">
                 <ui:TextBlock
                     Name="noPlayingMediaTitle"
-                    FontTypography="Subtitle"
                     FontSize="22"
+                    FontTypography="Subtitle"
                     Foreground="{ui:ThemeResource TextFillColorPrimaryBrush}"
                     Text="It’s a bit quiet in here..." />
                 <ui:TextBlock

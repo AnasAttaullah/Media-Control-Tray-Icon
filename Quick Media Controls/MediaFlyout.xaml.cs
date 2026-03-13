@@ -66,6 +66,8 @@ namespace Quick_Media_Controls
 
         public async Task ShowFlyoutAsync()
         {
+            await UpdateMediaInfo();
+
             Root.Opacity = 0;
             _isAnimatingClose = false;
             BeginAnimation(Window.TopProperty, null);
@@ -103,7 +105,6 @@ namespace Quick_Media_Controls
             fadeIn.Completed += (_, _) => Root.Opacity = 1;
             Root.BeginAnimation(OpacityProperty, fadeIn);
 
-            await UpdateMediaInfo();
         }
 
         private void AnimateClose()
@@ -142,9 +143,7 @@ namespace Quick_Media_Controls
             AnimateClose();
         }
 
-        public async 
-        Task
-UpdateMediaInfo()
+        public async Task UpdateMediaInfo()
         {
             if (!Dispatcher.CheckAccess())
             {

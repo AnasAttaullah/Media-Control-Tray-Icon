@@ -162,7 +162,11 @@ namespace Quick_Media_Controls
                 ? (isDarkMode ? pauseDarkIcon : pauseLightIcon)
                 : (isDarkMode ? playDarkIcon : playLightIcon);
 
-            _trayIcon.TooltipText = _mediaService.CurrentMediaProperties?.Title ?? "Unknown";
+            var mediaTitle = _mediaService.CurrentMediaProperties?.Title;
+            var mediaArtist = _mediaService.CurrentMediaProperties?.Artist;
+            mediaTitle  = mediaTitle?.Length > 35 ? mediaTitle[..32] + "..." : mediaTitle;
+
+            _trayIcon.TooltipText = mediaTitle + $" | {mediaArtist}" ?? "Unknown";
 
             if (_mediaFlyout != null)
             {
