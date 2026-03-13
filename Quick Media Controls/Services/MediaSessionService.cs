@@ -36,6 +36,8 @@ namespace Quick_Media_Controls.Services
                     CurrentPlaybackInfo = CurrentSession.GetPlaybackInfo();
                     CurrentSession.PlaybackInfoChanged += OnCurrentSession_PlaybackInfoChanged;
                     CurrentSession.MediaPropertiesChanged += OnCurrentSession_MediaPropertiesChanged;
+                    
+                    CurrentMediaProperties = await CurrentSession.TryGetMediaPropertiesAsync();
                 }
 
                 var osVersion = Environment.OSVersion;
@@ -44,12 +46,12 @@ namespace Quick_Media_Controls.Services
                 if (isWindows10)
                 {
                     System.Diagnostics.Debug.WriteLine("Windows 10 detected: Using polling strategy");
-                    _sessionChangeDetector = new PollingSessionChangeDetector(SessionManager, OnSessionChangeDetected);
+                    _sessionChangeDetector = new PollingSessionChangeDetector(SessionManager, OnSessionChangeDetectedAsync);
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine("Windows 11+ detected: Using event-based strategy");
-                    _sessionChangeDetector = new EventBasedSessionChangeDetector(SessionManager, OnSessionChangeDetected);
+                    _sessionChangeDetector = new EventBasedSessionChangeDetector(SessionManager, OnSessionChangeDetectedAsync);
                 }
 
                 _sessionChangeDetector.Start();
@@ -60,19 +62,19 @@ namespace Quick_Media_Controls.Services
             }
         }
 
-        private void OnSessionChangeDetected(GlobalSystemMediaTransportControlsSession? newSession)
+        private void OnSessionChangeDetectedAsync(GlobalSystemMediaTransportControlsSession? newSession)
         {
             var newSessionId = newSession?.SourceAppUserModelId;
 
             if (newSessionId != _lastSessionId)
             {
                 System.Diagnostics.Debug.WriteLine($"Session change: {_lastSessionId} -> {newSessionId}");
-                UpdateCurrentSession(newSession);
+                UpdateCurrentSessionAsync(newSession);
                 _lastSessionId = newSessionId;
             }
         }
 
-        private void UpdateCurrentSession(GlobalSystemMediaTransportControlsSession? newSession)
+        private async void UpdateCurrentSessionAsync(GlobalSystemMediaTransportControlsSession? newSession)
         {
             if (CurrentSession != null)
             {
@@ -94,6 +96,7 @@ namespace Quick_Media_Controls.Services
                 CurrentMediaProperties = null;
             }
 
+            await FetchMediaAsync();
             SessionChanged?.Invoke(this, SessionManager);
             MediaPropertiesChanged?.Invoke(this, EventArgs.Empty);
         }

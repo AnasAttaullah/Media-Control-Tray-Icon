@@ -64,7 +64,7 @@ namespace Quick_Media_Controls
             playPauseIcon.Symbol = _sessionManager.IsPlaying() ? SymbolRegular.Pause12 : SymbolRegular.Play12;
         }
 
-        public void ShowFlyout()
+        public async Task ShowFlyoutAsync()
         {
             Root.Opacity = 0;
             _isAnimatingClose = false;
@@ -103,7 +103,7 @@ namespace Quick_Media_Controls
             fadeIn.Completed += (_, _) => Root.Opacity = 1;
             Root.BeginAnimation(OpacityProperty, fadeIn);
 
-            UpdateMediaInfo();
+            await UpdateMediaInfo();
         }
 
         private void AnimateClose()
@@ -142,7 +142,9 @@ namespace Quick_Media_Controls
             AnimateClose();
         }
 
-        public async void UpdateMediaInfo()
+        public async 
+        Task
+UpdateMediaInfo()
         {
             if (!Dispatcher.CheckAccess())
             {
@@ -151,7 +153,7 @@ namespace Quick_Media_Controls
             }
 
             // Skip all work (including async thumbnail I/O) when not visible
-            if (Visibility != Visibility.Visible) return;
+            //if (Visibility != Visibility.Visible) return;
 
             if (_sessionManager.CurrentMediaProperties != null)
             {

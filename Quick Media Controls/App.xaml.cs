@@ -52,7 +52,7 @@ namespace Quick_Media_Controls
 
             _trayIcon.LeftClick += TrayIcon_LeftClickAsync;
             _trayIcon.LeftDoubleClick += TrayIcon_LeftDoubleClickAsync;
-            _trayIcon.RightClick += TrayIcon_RightClick;
+            _trayIcon.RightClick += TrayIcon_RightClickAsync;
 
             _mediaService.SessionChanged += MediaService_SessionChanged;
             _mediaService.PlaybackInfoChanged += MediaService_PlaybackInfoChanged;
@@ -90,7 +90,7 @@ namespace Quick_Media_Controls
             {
                 _trayIcon.LeftClick -= TrayIcon_LeftClickAsync;
                 _trayIcon.LeftDoubleClick -= TrayIcon_LeftDoubleClickAsync;
-                _trayIcon.RightClick -= TrayIcon_RightClick;
+                _trayIcon.RightClick -= TrayIcon_RightClickAsync;
                 
                 if (_trayIcon.IsRegistered)
                 {
@@ -162,7 +162,7 @@ namespace Quick_Media_Controls
                 ? (isDarkMode ? pauseDarkIcon : pauseLightIcon)
                 : (isDarkMode ? playDarkIcon : playLightIcon);
 
-            _trayIcon.TooltipText = _mediaService.CurrentPlaybackInfo?.PlaybackStatus.ToString() ?? "Unknown";
+            _trayIcon.TooltipText = _mediaService.CurrentMediaProperties?.Title ?? "Unknown";
 
             if (_mediaFlyout != null)
             {
@@ -220,12 +220,11 @@ namespace Quick_Media_Controls
              await _mediaService.SkipNextAsync();
         }
 
-        private async void TrayIcon_RightClick([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
+        private async void TrayIcon_RightClickAsync([System.Diagnostics.CodeAnalysis.NotNull] NotifyIcon sender, RoutedEventArgs e)
         {
             _mediaFlyout ??= new MediaFlyout(_mediaService);
-            await _mediaService.FetchMediaAsync();
             UpdatePlaybackButtonsStatus();
-            _mediaFlyout.ShowFlyout();
+            await _mediaFlyout.ShowFlyoutAsync();
         }
 
         private void MediaService_MediaPropertiesChanged(object? sender, EventArgs e)
@@ -235,7 +234,7 @@ namespace Quick_Media_Controls
 
         private void MediaService_SessionChanged(object? sender, GlobalSystemMediaTransportControlsSessionManager e)
         { 
-            UpdateTrayIcon();        
+            UpdateTrayIcon();
         }
 
         private void MediaService_PlaybackInfoChanged(object? sender, GlobalSystemMediaTransportControlsSessionPlaybackInfo e)
