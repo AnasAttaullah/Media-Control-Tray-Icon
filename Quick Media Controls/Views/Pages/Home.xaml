@@ -9,15 +9,10 @@
     Title="Home"
     mc:Ignorable="d">
 
-    <StackPanel Margin="30">
-
-        <ui:TextBlock
-            Margin="0,0,0,20"
-            FontSize="22"
-            FontTypography="Subtitle"
-            Foreground="{ui:ThemeResource TextFillColorPrimaryBrush}"
-            Text="Home" />
-
+    <StackPanel Margin="10">
+        <ui:Image Source="/Assets/banner.png" CornerRadius="12" Height="150" Margin="0,0,0,10"/>
+        <ui:CardAction Icon="{ui:SymbolIcon Symbol=Bug16}" Content="Report a Bug"   Margin="0,0,0,10" FontSize="18" Click="CardAction_Click" />
+        <ui:CardAction Icon="{ui:SymbolIcon Symbol=AppsAddIn16}" Content="Request a Feature"   Margin="0,0,0,10" FontSize="18" Click="CardAction_Click" />
 
     </StackPanel>
 </Page>

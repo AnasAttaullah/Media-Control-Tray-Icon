@@ -9,7 +9,7 @@
     Title="About Setting Page"
     mc:Ignorable="d">
 
-    <StackPanel Margin="30">
+    <StackPanel Margin="20 10 20 0">
 
         <ui:TextBlock
             Margin="0,0,0,20"

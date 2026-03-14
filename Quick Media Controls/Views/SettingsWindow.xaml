@@ -5,9 +5,8 @@
     xmlns:pages="clr-namespace:Quick_Media_Controls.Views.Pages"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="Settings"
-    Width="600"
-    Height="400"
-    MinHeight="350"
+    Width="700"
+    Height="450"
     Loaded="SettingsWindow_Loaded"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
@@ -51,6 +50,9 @@
         </Grid>
 
         <Grid Grid.Row="1" Margin="5">
+
+            <ui:HyperlinkButton Content="Buy me a Coffee" Icon="{ui:SymbolIcon Symbol=DrinkCoffee16}" NavigateUri="https://google.com" />
+
             <StackPanel
                 Margin="0,0,10,0"
                 HorizontalAlignment="Right"
@@ -59,7 +61,7 @@
                 <ui:Button
                     Margin="0,0,10,0"
                     Click="CloseButton_Click"
-                    Content="Close" />
+                    Content="Cancel" />
                 <ui:Button Appearance="Primary" Content="Save" />
             </StackPanel>
         </Grid>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,20 @@ namespace Quick_Media_Controls.Views.Pages
         public Home()
         {
             InitializeComponent();
+        }
+
+        private void CardAction_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://github.com/AnasAttaullah/Quick-Media-Controls/issues");
+        }
+
+        public static void OpenUrl(string url)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
         }
     }
 }
